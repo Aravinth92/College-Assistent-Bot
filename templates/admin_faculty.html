@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Faculty - College Assistant Bot{% endblock %}
+{% block header_title %}Faculty & Staff Management{% endblock %}
+{% block header_subtitle %}Add, update, and manage professor profiles, contact information, and research specializations{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 30px;">
+
+    <!-- Action Bar & Add Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <h3><i class="fa-solid fa-chalkboard-user" style="color: var(--accent-oxford); margin-right: 8px;"></i> Faculty Directory Roster</h3>
+        <button class="btn-primary" onclick="openAddModal()">
+            <i class="fa-solid fa-user-plus"></i> Add New Faculty Member
+        </button>
+    </div>
+
+    <!-- Faculty Data Table -->
+    <section class="glass-panel" style="padding: 24px;">
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Faculty Name</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Email & Contact</th>
+                        <th>Qualification</th>
+                        <th>Office</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if faculty %}
+                        {% for item in faculty %}
+                            <tr>
+                                <td><strong>{{ item.name }}</strong></td>
+                                <td><span class="badge badge-primary">{{ item.designation }}</span></td>
+                                <td>{{ item.dept_name or 'N/A' }}</td>
+                                <td>
+                                    <div style="font-size: 0.85rem;">
+                                        <div><i class="fa-solid fa-envelope" style="color: var(--accent-indigo);"></i> {{ item.email or 'N/A' }}</div>
+                                        {% if item.phone %}<div style="color: var(--text-secondary); margin-top: 2px;"><i class="fa-solid fa-phone" style="color: var(--success-green);"></i> {{ item.phone }}</div>{% endif %}
+                                    </div>
+                                </td>
+                                <td><span style="font-size: 0.85rem; color: var(--text-secondary);">{{ item.qualification or 'N/A' }}</span></td>
+                                <td><span style="font-size: 0.85rem; color: var(--text-secondary);">{{ item.office_location or 'N/A' }}</span></td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" 
+                                                onclick='editFaculty({{ item | tojson | safe }})'>
+                                            <i class="fa-solid fa-pen"></i> Edit
+                                        </button>
+                                        <form action="{{ url_for('delete_faculty', faculty_id=item.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this faculty member?');" style="display: inline;">
+                                            <button type="submit" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; color: var(--error-red); border-color: rgba(220, 38, 38, 0.3);">
+                                                <i class="fa-solid fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                                No faculty members added yet. Click "Add New Faculty Member" above to create one.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<!-- Modal for Add/Edit Faculty -->
+<div id="facultyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 650px; padding: 30px; background: #ffffff; max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+            <h3 id="modalTitle" style="color: var(--accent-oxford);"><i class="fa-solid fa-user-plus"></i> Add New Faculty Member</h3>
+            <button onclick="closeModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form id="facultyForm" action="{{ url_for('manage_faculty') }}" method="POST">
+            <input type="hidden" id="faculty_id" name="faculty_id" value="">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="fac-name">Full Name</label>
+                    <input type="text" id="fac-name" name="name" class="form-control" placeholder="e.g. Dr. Rajesh Kumar" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fac-designation">Designation</label>
+                    <input type="text" id="fac-designation" name="designation" class="form-control" placeholder="e.g. Professor & HOD" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="fac-dept">Department</label>
+                    <select id="fac-dept" name="department_id" class="form-control" required>
+                        <option value="">Select Department</option>
+                        {% for d in departments %}
+                            <option value="{{ d.id }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fac-email">Email Address</label>
+                    <input type="email" id="fac-email" name="email" class="form-control" placeholder="prof@college.com" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="fac-phone">Contact Phone</label>
+                    <input type="text" id="fac-phone" name="phone" class="form-control" placeholder="e.g. +91 98765 11001">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fac-office">Office Location</label>
+                    <input type="text" id="fac-office" name="office_location" class="form-control" placeholder="e.g. CSE Block, Room 301">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="fac-qualification">Qualification / Degrees</label>
+                <input type="text" id="fac-qualification" name="qualification" class="form-control" placeholder="e.g. Ph.D. in Computer Science (IIT Delhi)">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="fac-specialization">Research & Teaching Specialization (Comma Separated)</label>
+                <input type="text" id="fac-specialization" name="specialization" class="form-control" placeholder="e.g. Artificial Intelligence, Data Structures, Machine Learning">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Faculty Member</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function openAddModal() {
+        document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-user-plus"></i> Add New Faculty Member';
+        document.getElementById('faculty_id').value = '';
+        document.getElementById('facultyForm').reset();
+        document.getElementById('facultyModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('facultyModal').style.display = 'none';
+    }
+
+    function editFaculty(data) {
+        document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-user-pen"></i> Edit Faculty Profile';
+        document.getElementById('faculty_id').value = data.id;
+        document.getElementById('fac-name').value = data.name;
+        document.getElementById('fac-designation').value = data.designation || '';
+        document.getElementById('fac-dept').value = data.department_id || '';
+        document.getElementById('fac-email').value = data.email || '';
+        document.getElementById('fac-phone').value = data.phone || '';
+        document.getElementById('fac-office').value = data.office_location || '';
+        document.getElementById('fac-qualification').value = data.qualification || '';
+        document.getElementById('fac-specialization').value = data.specialization || '';
+        
+        document.getElementById('facultyModal').style.display = 'flex';
+    }
+</script>
+{% endblock %}

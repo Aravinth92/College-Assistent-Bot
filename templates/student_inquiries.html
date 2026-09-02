@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}My Inquiries & Questionnaires - College Assistant Bot{% endblock %}
+{% block header_title %}Student Inquiries & Questionnaires{% endblock %}
+{% block header_subtitle %}Submit custom inquiries to college administration and view responses{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+    
+    <!-- Submit Inquiry Form -->
+    <section class="glass-panel" style="padding: 24px;">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-paper-plane" style="color: var(--accent-indigo); margin-right: 8px;"></i> Submit New Inquiry</h3>
+        
+        <form action="{{ url_for('student_inquiries') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="inquiry-subject">Subject Title</label>
+                <input type="text" id="inquiry-subject" name="subject" class="form-control" placeholder="e.g. Request for Hostel Allotment Letter" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="inquiry-category">Category</label>
+                <select id="inquiry-category" name="category" class="form-control" required>
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Academics">Academics & Syllabus</option>
+                    <option value="Examinations">Examinations & Results</option>
+                    <option value="Hostel">Hostel & Mess</option>
+                    <option value="Fees & Scholarship">Fees & Scholarship</option>
+                    <option value="Placements">Campus Placements</option>
+                    <option value="Administrative">Administrative Office</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="inquiry-message">Question / Message</label>
+                <textarea id="inquiry-message" name="message" class="form-control" rows="5" placeholder="Describe your question or requirement in detail..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                <i class="fa-solid fa-paper-plane"></i> Submit to Admin
+            </button>
+        </form>
+    </section>
+
+    <!-- My Submitted Inquiries List -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3><i class="fa-solid fa-list-check" style="color: var(--accent-oxford); margin-right: 8px;"></i> Inquiry History</h3>
+            <span class="badge badge-primary">{{ inquiries | length }} Total Submitted</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            {% if inquiries %}
+                {% for item in inquiries %}
+                    <div class="glass-panel" style="padding: 20px; background: #ffffff; border-left: 5px solid {% if item.status == 'Answered' %}var(--success-green){% elif item.status == 'Pending' %}var(--warning-amber){% else %}var(--text-secondary){% endif %};">
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px;">
+                            <h4 style="font-weight: 700; font-size: 1.05rem;">{{ item.subject }}</h4>
+                            <span class="badge {% if item.status == 'Answered' %}badge-success{% elif item.status == 'Pending' %}badge-warning{% else %}badge-primary{% endif %}">
+                                {% if item.status == 'Pending' %}<i class="fa-solid fa-clock"></i>{% else %}<i class="fa-solid fa-circle-check"></i>{% endif %} {{ item.status }}
+                            </span>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">
+                            <span><i class="fa-solid fa-tag"></i> {{ item.category }}</span>
+                            <span><i class="fa-solid fa-calendar"></i> Submitted: {{ item.created_at[:16] }}</span>
+                        </div>
+
+                        <!-- Question text -->
+                        <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 4px;">Your Question:</span>
+                            <p style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.5;">{{ item.message }}</p>
+                        </div>
+
+                        <!-- Admin Response text if available -->
+                        {% if item.admin_response %}
+                            <div style="background: rgba(16, 185, 129, 0.06); padding: 14px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #047857; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                    <i class="fa-solid fa-reply"></i> Official Admin Response:
+                                </span>
+                                <p style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.5; font-weight: 500;">{{ item.admin_response }}</p>
+                                <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; text-align: right; margin-top: 6px;">
+                                    Answered: {{ item.answered_at[:16] if item.answered_at else 'Recently' }}
+                                </span>
+                            </div>
+                        {% else %}
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); font-style: italic;">
+                                <i class="fa-solid fa-circle-info"></i> Awaiting administrative review. Answers will appear here once processed.
+                            </p>
+                        {% endif %}
+
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="glass-panel" style="padding: 40px; text-align: center;">
+                    <i class="fa-solid fa-inbox" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                    <p style="color: var(--text-secondary);">You have not submitted any inquiries yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

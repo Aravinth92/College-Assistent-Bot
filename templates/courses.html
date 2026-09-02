@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Courses - College Assistant Bot{% endblock %}
+{% block header_title %}Academic Courses{% endblock %}
+{% block header_subtitle %}Browse courses, fees, seat capacities, and admission criteria{% endblock %}
+
+{% block content %}
+{% if session.get('role') == 'admin' %}
+<!-- Admin View: Split Grid with Add/Edit Form and Course Table -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+    
+    <!-- Add/Edit Course Form -->
+    <section class="glass-panel" style="padding: 24px;">
+        <h3 id="form-title" style="margin-bottom: 20px;"><i class="fa-solid fa-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Add Course</h3>
+        
+        <form id="course-form" action="{{ url_for('manage_courses') }}" method="POST">
+            <input type="hidden" id="course-action" name="action" value="add">
+            <input type="hidden" id="course-id-field" name="course_id" value="">
+            
+            <div class="form-group">
+                <label class="form-label" for="course-name">Course Name</label>
+                <input type="text" id="course-name" name="name" class="form-control" placeholder="e.g. Bachelor of Technology in Computer Science" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="course-code">Course Code</label>
+                    <input type="text" id="course-code" name="code" class="form-control" placeholder="e.g. BTECH-CSE" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="course-dept">Department</label>
+                    <select id="course-dept" name="department_id" class="form-control" required>
+                        <option value="">Select Dept</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="course-duration">Duration</label>
+                    <input type="text" id="course-duration" name="duration" class="form-control" placeholder="e.g. 4 Years" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="course-fees">Annual Fee (Rs.)</label>
+                    <input type="number" id="course-fees" name="fees" class="form-control" min="0" step="any" placeholder="Annual Tuition Fee" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="course-seats">Available Seats</label>
+                    <input type="number" id="course-seats" name="seats" class="form-control" min="0" placeholder="e.g. 120" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="course-eligibility">Eligibility</label>
+                    <input type="text" id="course-eligibility" name="eligibility" class="form-control" placeholder="e.g. 10+2 with PCM (60%)" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="course-syllabus">Syllabus Summary</label>
+                <textarea id="course-syllabus" name="syllabus" class="form-control" rows="3" placeholder="Overview of semesters or major topics"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 2; justify-content: center;">
+                    <i class="fa-solid fa-save"></i> Save Course
+                </button>
+                <button type="button" id="reset-btn" class="btn-secondary" style="flex: 1;" onclick="clearForm()">
+                    Reset
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Course Listing Directory Table -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h3><i class="fa-solid fa-graduation-cap" style="color: var(--accent-violet); margin-right: 8px;"></i> Course Catalog</h3>
+        
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Code / Course</th>
+                        <th>Dept</th>
+                        <th>Duration & Fee</th>
+                        <th>Seats</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if courses %}
+                        {% for c in courses %}
+                            <tr>
+                                <td>
+                                    <span class="badge badge-primary" style="font-size: 0.7rem;">{{ c.code }}</span>
+                                    <div style="font-weight: 600; margin-top: 4px;">{{ c.name }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ c.eligibility }}">
+                                        Eligible: {{ c.eligibility }}
+                                    </div>
+                                </td>
+                                <td>{{ c.dept_name or 'N/A' }}</td>
+                                <td>
+                                    <div>{{ c.duration }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 500;">Rs. {{ c.fees }}/yr</div>
+                                </td>
+                                <td>{{ c.seats }} seats</td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn-primary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px;"
+                                                onclick="editCourse('{{ c.id }}', '{{ c.name }}', '{{ c.code }}', '{{ c.department_id or '' }}', '{{ c.duration }}', '{{ c.fees }}', '{{ c.seats }}', '{{ c.eligibility }}', '{{ c.syllabus or '' }}')">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form action="{{ url_for('delete_course', course_id=c.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this course?')">
+                                            <button type="submit" class="btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; color: var(--error-red); border-color: rgba(239, 68, 68, 0.2);">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 20px;">No courses registered in the database.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+{% block extra_scripts %}
+<script>
+    function editCourse(id, name, code, deptId, duration, fees, seats, eligibility, syllabus) {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-cyan); margin-right: 8px;"></i> Edit Course';
+        document.getElementById('course-action').value = 'edit';
+        document.getElementById('course-id-field').value = id;
+        
+        document.getElementById('course-name').value = name;
+        document.getElementById('course-code').value = code;
+        document.getElementById('course-dept').value = deptId;
+        document.getElementById('course-duration').value = duration;
+        document.getElementById('course-fees').value = fees;
+        document.getElementById('course-seats').value = seats;
+        document.getElementById('course-eligibility').value = eligibility;
+        document.getElementById('course-syllabus').value = syllabus;
+    }
+
+    function clearForm() {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Add Course';
+        document.getElementById('course-action').value = 'add';
+        document.getElementById('course-id-field').value = '';
+        document.getElementById('course-form').reset();
+    }
+</script>
+{% endblock %}
+
+{% else %}
+<!-- Student View: Card Catalog -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 30px;">
+    {% if courses %}
+        {% for c in courses %}
+            <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="badge badge-primary">{{ c.code }}</span>
+                        <span style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600;"><i class="fa-solid fa-user-tag"></i> {{ c.seats }} Intake</span>
+                    </div>
+                    
+                    <h3 style="font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">{{ c.name }}</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;"><i class="fa-solid fa-building"></i> {{ c.dept_name or 'No Department' }}</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-secondary);"><i class="fa-solid fa-clock"></i> Course Duration</span>
+                            <span style="font-weight: 500;">{{ c.duration }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-secondary);"><i class="fa-solid fa-wallet"></i> Annual Tuition Fee</span>
+                            <span style="font-weight: 600; color: var(--text-primary);">Rs. {{ c.fees }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-secondary);"><i class="fa-solid fa-clipboard-check"></i> Eligibility Criteria</span>
+                            <span style="font-weight: 500; font-size: 0.85rem; text-align: right; max-width: 60%;">{{ c.eligibility }}</span>
+                        </div>
+                    </div>
+
+                    {% if c.syllabus %}
+                        <div style="margin-top: 15px;">
+                            <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 6px;">Syllabus / Curriculum Overview</span>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                {{ c.syllabus }}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <a href="{{ url_for('student_chatbot') }}" class="btn-primary" style="justify-content: center; width: 100%; font-size: 0.9rem;">
+                    <i class="fa-solid fa-comment-dots"></i> Query Fees & Admissions
+                </a>
+            </section>
+        {% endfor %}
+    {% else %}
+        <div class="glass-panel" style="padding: 40px; text-align: center; grid-column: 1 / -1;">
+            <i class="fa-solid fa-graduation-cap" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+            <p style="color: var(--text-secondary);">No courses published in directory currently. Please contact administration.</p>
+        </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

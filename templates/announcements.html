@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Announcements - College Assistant Bot{% endblock %}
+{% block header_title %}Campus Notices & Announcements{% endblock %}
+{% block header_subtitle %}View and manage institutional notices, holiday alerts, and exam deadlines{% endblock %}
+
+{% block content %}
+{% if session.get('role') == 'admin' %}
+<!-- Admin View: Notice Board Editor -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+    
+    <!-- Add/Edit Announcement Form -->
+    <section class="glass-panel" style="padding: 24px;">
+        <h3 id="form-title" style="margin-bottom: 20px;"><i class="fa-solid fa-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Publish Notice</h3>
+        
+        <form id="announce-form" action="{{ url_for('manage_announcements') }}" method="POST">
+            <input type="hidden" id="announce-action" name="action" value="add">
+            <input type="hidden" id="announce-id-field" name="announce_id" value="">
+            
+            <div class="form-group">
+                <label class="form-label" for="announce-title">Notice Title</label>
+                <input type="text" id="announce-title" name="title" class="form-control" placeholder="e.g. End Semester Timetable Released" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="announce-content">Content Details</label>
+                <textarea id="announce-content" name="content" class="form-control" rows="5" placeholder="Enter notice details here..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="announce-category">Category</label>
+                <select id="announce-category" name="category" class="form-control" required>
+                    <option value="general">General</option>
+                    <option value="exam">Exam Notification</option>
+                    <option value="holiday">Holiday Announcement</option>
+                    <option value="admission">Admission Notification</option>
+                    <option value="placement">Placement Notification</option>
+                    <option value="event">Campus Event</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 2; justify-content: center;">
+                    <i class="fa-solid fa-bullhorn"></i> Publish Notice
+                </button>
+                <button type="button" id="reset-btn" class="btn-secondary" style="flex: 1;" onclick="clearForm()">
+                    Reset
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Published Notices Directory Table -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h3><i class="fa-solid fa-message" style="color: var(--accent-violet); margin-right: 8px;"></i> Live Notice Board</h3>
+        
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Date Posted</th>
+                        <th>Title & Details</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if announcements %}
+                        {% for note in announcements %}
+                            <tr>
+                                <td style="font-size: 0.85rem; color: var(--text-secondary); width: 120px;">{{ note.date_posted[:16] }}</td>
+                                <td>
+                                    <div style="font-weight: 600; font-size: 1rem;">{{ note.title }}</div>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;">{{ note.content }}</p>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if note.category == 'exam' %}badge-danger
+                                        {% elif note.category == 'placement' %}badge-primary
+                                        {% elif note.category == 'holiday' %}badge-success
+                                        {% else %}badge-primary{% endif %}">
+                                        {{ note.category | upper }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn-primary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px;"
+                                                onclick="editAnnounce('{{ note.id }}', {{ note.title | tojson | safe }}, {{ note.content | tojson | safe }}, '{{ note.category }}')">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form action="{{ url_for('delete_announcement', announce_id=note.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this announcement from the student portal?')">
+                                            <button type="submit" class="btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; color: var(--error-red); border-color: rgba(239, 68, 68, 0.2);">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 20px;">No published notices.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+{% block extra_scripts %}
+<script>
+    function editAnnounce(id, title, content, category) {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-cyan); margin-right: 8px;"></i> Edit Notice';
+        document.getElementById('announce-action').value = 'edit';
+        document.getElementById('announce-id-field').value = id;
+        
+        document.getElementById('announce-title').value = title;
+        document.getElementById('announce-content').value = content;
+        document.getElementById('announce-category').value = category;
+    }
+
+    function clearForm() {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Publish Notice';
+        document.getElementById('announce-action').value = 'add';
+        document.getElementById('announce-id-field').value = '';
+        document.getElementById('announce-form').reset();
+    }
+</script>
+{% endblock %}
+
+{% else %}
+<!-- Student View: Notice Board Archive -->
+<div style="display: flex; flex-direction: column; gap: 20px;">
+    {% if announcements %}
+        {% for note in announcements %}
+            <div class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 12px; border-left: 5px solid 
+                {% if note.category == 'exam' %}var(--error-red)
+                {% elif note.category == 'placement' %}var(--accent-violet)
+                {% elif note.category == 'holiday' %}var(--success-green)
+                {% else %}var(--accent-cyan){% endif %};">
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                    <h3 style="font-weight: 700; font-size: 1.2rem;">{{ note.title }}</h3>
+                    <span class="badge 
+                        {% if note.category == 'exam' %}badge-danger
+                        {% elif note.category == 'placement' %}badge-primary
+                        {% elif note.category == 'holiday' %}badge-success
+                        {% else %}badge-primary{% endif %}">
+                        {{ note.category | upper }}
+                    </span>
+                </div>
+                
+                <p style="color: var(--text-primary); line-height: 1.6; font-size: 1rem;">{{ note.content }}</p>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; font-size: 0.8rem; color: var(--text-secondary);">
+                    <span><i class="fa-solid fa-calendar"></i> Posted: {{ note.date_posted }}</span>
+                    <a href="{{ url_for('student_chatbot') }}" style="color: var(--accent-cyan); font-weight: 600;"><i class="fa-solid fa-comments"></i> Ask bot about this notice</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="glass-panel" style="padding: 40px; text-align: center;">
+            <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+            <p style="color: var(--text-secondary);">No notice board announcements published yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

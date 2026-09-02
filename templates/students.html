@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Students - College Assistant Bot{% endblock %}
+{% block header_title %}Student Management{% endblock %}
+{% block header_subtitle %}Add, update, search, and activate/deactivate student accounts{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+    
+    <!-- Left: Add/Edit Student Form -->
+    <section class="glass-panel" style="padding: 24px;">
+        <h3 id="form-title" style="margin-bottom: 20px;"><i class="fa-solid fa-user-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Add Student</h3>
+        
+        <form id="student-form" action="{{ url_for('manage_students') }}" method="POST">
+            <input type="hidden" id="student-action" name="action" value="add">
+            <input type="hidden" id="student-id-field" name="student_db_id" value="">
+            
+            <div class="form-group">
+                <label class="form-label" for="stu-name">Full Name</label>
+                <input type="text" id="stu-name" name="name" class="form-control" placeholder="e.g. John Doe" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="stu-email">Email Address</label>
+                <input type="email" id="stu-email" name="email" class="form-control" placeholder="student@college.com" required>
+            </div>
+            
+            <div class="form-group" id="username-group">
+                <label class="form-label" for="stu-username">Username</label>
+                <input type="text" id="stu-username" name="username" class="form-control" placeholder="Login username">
+            </div>
+
+            <div class="form-group" id="password-group">
+                <label class="form-label" for="stu-password">Password</label>
+                <input type="password" id="stu-password" name="password" class="form-control" placeholder="Leave blank to auto-generate or enter custom">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="stu-reg-id">Student ID / Roll No</label>
+                <input type="text" id="stu-reg-id" name="student_id" class="form-control" placeholder="e.g. STU2026002" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="stu-dept">Department</label>
+                    <select id="stu-dept" name="department_id" class="form-control" required>
+                        <option value="">Select Dept</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="stu-course">Course</label>
+                    <select id="stu-course" name="course_id" class="form-control" required>
+                        <option value="">Select Course</option>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="stu-year">Year of Study</label>
+                    <select id="stu-year" name="year" class="form-control" required>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="stu-phone">Phone Number</label>
+                    <input type="text" id="stu-phone" name="phone" class="form-control" placeholder="9876543210">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 2; justify-content: center;">
+                    <i class="fa-solid fa-save"></i> Save Student
+                </button>
+                <button type="button" id="reset-btn" class="btn-secondary" style="flex: 1;" onclick="clearForm()">
+                    Reset
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Right: Student Directory Search & List -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <h3><i class="fa-solid fa-address-book" style="color: var(--accent-violet); margin-right: 8px;"></i> Registered Students</h3>
+            
+            <!-- Search Bar -->
+            <form action="{{ url_for('manage_students') }}" method="GET" style="display: flex; gap: 8px; max-width: 300px; flex-grow: 1;">
+                <input type="text" name="search" class="form-control" style="padding: 8px 12px; font-size: 0.9rem;" placeholder="Search by name, ID, email..." value="{{ search_query or '' }}">
+                <button type="submit" class="btn-primary" style="padding: 8px 16px; font-size: 0.9rem;"><i class="fa-solid fa-search"></i></button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Dept & Course</th>
+                        <th>Year</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if students %}
+                        {% for student in students %}
+                            <tr>
+                                <td><strong>{{ student.student_id }}</strong></td>
+                                <td>
+                                    <div style="font-weight: 600;">{{ student.name }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ student.email }} | {{ student.phone or 'N/A' }}</div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.9rem;">{{ student.dept_name or 'N/A' }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--accent-cyan);">{{ student.course_code or 'N/A' }}</div>
+                                </td>
+                                <td>{{ student.year }} Yr</td>
+                                <td>
+                                    <form action="{{ url_for('toggle_student_status', user_id=student.user_id) }}" method="POST" style="margin: 0;">
+                                        {% if student.status == 'active' %}
+                                            <button type="submit" class="badge badge-success" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Click to Deactivate">
+                                                <i class="fa-solid fa-toggle-on"></i> Active
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="badge badge-danger" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Click to Activate">
+                                                <i class="fa-solid fa-toggle-off"></i> Inactive
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <!-- Edit button -->
+                                        <button class="btn-primary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px;" 
+                                                onclick="editStudent('{{ student.id }}', '{{ student.name }}', '{{ student.email }}', '{{ student.student_id }}', '{{ student.department_id or '' }}', '{{ student.course_id or '' }}', '{{ student.year }}', '{{ student.phone or '' }}')">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <!-- Delete button -->
+                                        <form action="{{ url_for('delete_student', student_id=student.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this student and their login credentials?')">
+                                            <button type="submit" class="btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; color: var(--error-red); border-color: rgba(239, 68, 68, 0.2);">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 20px;">No students found matching your search criteria.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+{% block extra_scripts %}
+<script>
+    function editStudent(id, name, email, studentId, deptId, courseId, year, phone) {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-user-pen" style="color: var(--accent-cyan); margin-right: 8px;"></i> Edit Student';
+        document.getElementById('student-action').value = 'edit';
+        document.getElementById('student-id-field').value = id;
+        
+        document.getElementById('stu-name').value = name;
+        document.getElementById('stu-email').value = email;
+        document.getElementById('stu-reg-id').value = studentId;
+        document.getElementById('stu-dept').value = deptId;
+        document.getElementById('stu-course').value = courseId;
+        document.getElementById('stu-year').value = year;
+        document.getElementById('stu-phone').value = phone;
+        
+        // Hide password & username requirements since they are associated with user login
+        document.getElementById('username-group').style.display = 'none';
+        document.getElementById('password-group').style.display = 'none';
+    }
+
+    function clearForm() {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-user-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Add Student';
+        document.getElementById('student-action').value = 'add';
+        document.getElementById('student-id-field').value = '';
+        
+        document.getElementById('student-form').reset();
+        
+        document.getElementById('username-group').style.display = 'block';
+        document.getElementById('password-group').style.display = 'block';
+    }
+</script>
+{% endblock %}
+{% endblock %}

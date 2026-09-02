@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}College Assistant Bot{% endblock %}</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for stats -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Sidebar Layout -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="user-avatar" style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);">
+                <i class="fa-solid fa-building-columns"></i>
+            </span>
+            <div style="display: flex; flex-direction: column;">
+                <span class="sidebar-logo" style="font-size: 1.15rem; font-weight: 800; color: #ffffff; line-height: 1.2;">College Assistant</span>
+                <span style="font-size: 0.7rem; color: #93c5fd; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Bot Portal</span>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            {% if session.get('role') == 'admin' %}
+                <!-- Admin Sidebar -->
+                <li class="sidebar-item {% if active_page == 'dashboard' %}active{% endif %}">
+                    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link">
+                        <i class="fa-solid fa-chart-line"></i> Dashboard
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'students' %}active{% endif %}">
+                    <a href="{{ url_for('manage_students') }}" class="sidebar-link">
+                        <i class="fa-solid fa-users"></i> Students
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'departments' %}active{% endif %}">
+                    <a href="{{ url_for('manage_departments') }}" class="sidebar-link">
+                        <i class="fa-solid fa-building-columns"></i> Departments
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'faculty' %}active{% endif %}">
+                    <a href="{{ url_for('manage_faculty') }}" class="sidebar-link">
+                        <i class="fa-solid fa-chalkboard-user"></i> Faculty Roster
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'courses' %}active{% endif %}">
+                    <a href="{{ url_for('manage_courses') }}" class="sidebar-link">
+                        <i class="fa-solid fa-book-open"></i> Courses
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'syllabus' %}active{% endif %}">
+                    <a href="{{ url_for('manage_syllabus') }}" class="sidebar-link">
+                        <i class="fa-solid fa-book-bookmark"></i> Syllabus Catalog
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'documents' %}active{% endif %}">
+                    <a href="{{ url_for('manage_documents') }}" class="sidebar-link">
+                        <i class="fa-solid fa-file-pdf"></i> Prospectus RAG
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'inquiries' %}active{% endif %}">
+                    <a href="{{ url_for('admin_inquiries') }}" class="sidebar-link">
+                        <i class="fa-solid fa-clipboard-question"></i> Student Inquiries
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'faqs' %}active{% endif %}">
+                    <a href="{{ url_for('manage_faqs') }}" class="sidebar-link">
+                        <i class="fa-solid fa-circle-question"></i> FAQs
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'announcements' %}active{% endif %}">
+                    <a href="{{ url_for('manage_announcements') }}" class="sidebar-link">
+                        <i class="fa-solid fa-bullhorn"></i> Announcements
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'placements' %}active{% endif %}">
+                    <a href="{{ url_for('manage_placements') }}" class="sidebar-link">
+                        <i class="fa-solid fa-briefcase"></i> Placements
+                    </a>
+                </li>
+            {% else %}
+                <!-- Student Sidebar -->
+                <li class="sidebar-item {% if active_page == 'dashboard' %}active{% endif %}">
+                    <a href="{{ url_for('student_dashboard') }}" class="sidebar-link">
+                        <i class="fa-solid fa-house"></i> Home
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'chatbot' %}active{% endif %}">
+                    <a href="{{ url_for('student_chatbot') }}" class="sidebar-link">
+                        <i class="fa-solid fa-message"></i> Ask Chatbot
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'inquiries' %}active{% endif %}">
+                    <a href="{{ url_for('student_inquiries') }}" class="sidebar-link">
+                        <i class="fa-solid fa-paper-plane"></i> My Inquiries
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'departments' %}active{% endif %}">
+                    <a href="{{ url_for('student_departments') }}" class="sidebar-link">
+                        <i class="fa-solid fa-building-columns"></i> Departments
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'faculty' %}active{% endif %}">
+                    <a href="{{ url_for('student_faculty') }}" class="sidebar-link">
+                        <i class="fa-solid fa-chalkboard-user"></i> Faculty Directory
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'courses' %}active{% endif %}">
+                    <a href="{{ url_for('student_courses') }}" class="sidebar-link">
+                        <i class="fa-solid fa-book-open"></i> Courses
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'syllabus' %}active{% endif %}">
+                    <a href="{{ url_for('student_syllabus') }}" class="sidebar-link">
+                        <i class="fa-solid fa-book-bookmark"></i> Syllabus
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'placements' %}active{% endif %}">
+                    <a href="{{ url_for('student_placements') }}" class="sidebar-link">
+                        <i class="fa-solid fa-briefcase"></i> Placements
+                    </a>
+                </li>
+                <li class="sidebar-item {% if active_page == 'faqs' %}active{% endif %}">
+                    <a href="{{ url_for('student_faqs') }}" class="sidebar-link">
+                        <i class="fa-solid fa-circle-question"></i> FAQs
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+        
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="sidebar-link" style="color: #ef4444;">
+                <i class="fa-solid fa-right-from-bracket" style="background: none; -webkit-text-fill-color: #ef4444; color: #ef4444;"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Top Navigation -->
+        <header class="topbar">
+            <div>
+                <h2>{% block header_title %}Welcome{% endblock %}</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">{% block header_subtitle %}College Assistant Bot Portal{% endblock %}</p>
+            </div>
+            
+            <div class="glass-panel user-profile-badge">
+                <span class="user-avatar">{{ session.get('username')[0] | upper if session.get('username') else 'U' }}</span>
+                <div>
+                    <h5 style="margin: 0; font-size: 0.95rem;">{{ session.get('username') }}</h5>
+                    <span style="font-size: 0.75rem; color: var(--accent-cyan); text-transform: uppercase;">{{ session.get('role') }}</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for category, msg in messages %}
+                        <div class="glass-panel" style="padding: 12px 20px; border-left: 5px solid {% if category == 'error' %}var(--error-red){% else %}var(--success-green){% endif %}; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span>{{ msg }}</span>
+                            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--text-primary); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page Specific Content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

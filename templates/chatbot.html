@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Ask Chatbot - College Assistant Bot{% endblock %}
+{% block header_title %}College Assistant Bot{% endblock %}
+{% block header_subtitle %}Ask questions about courses, admissions, timetables, placements, fees, and more{% endblock %}
+
+{% block extra_head %}
+<style>
+    .suggestion-chips-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 0 10px;
+    }
+    .suggestion-chip {
+        background: #ffffff;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+        color: var(--accent-indigo);
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .suggestion-chip:hover {
+        background: var(--accent-indigo);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        transform: translateY(-1px);
+    }
+    .chat-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        height: calc(100vh - 200px);
+        overflow: hidden;
+    }
+    .chat-info-sidebar {
+        padding: 20px;
+        border-left: 1px solid var(--border-color);
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="glass-panel chatbot-container">
+    <!-- Chat Screen -->
+    <div class="chat-messages" id="chat-messages">
+        <!-- Initial Welcome Message -->
+        <div class="chat-message bot">
+            <div class="user-avatar" style="background: var(--accent-oxford); color: white;">🤖</div>
+            <div class="message-bubble">
+                <p>Hello! I am <strong>College Assistant Bot</strong>, your personal campus assistant companion. I can answer questions using the official college database and prospectus.</p>
+                <p style="margin-top: 10px;">Try asking me something or click one of the quick suggestions below!</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Suggested Chips -->
+    <div class="suggestion-chips-container">
+        <button class="suggestion-chip">"What courses are available?"</button>
+        <button class="suggestion-chip">"What is the admission procedure?"</button>
+        <button class="suggestion-chip">"Who is the HOD of Computer Science?"</button>
+        <button class="suggestion-chip">"What is the hostel fee?"</button>
+        <button class="suggestion-chip">"Which companies visit for placements?"</button>
+        <button class="suggestion-chip">"What are the library timings?"</button>
+    </div>
+
+    <!-- Chat Input Form -->
+    <form class="chat-input-area" id="chat-form">
+        <input type="text" id="chat-input" class="form-control" placeholder="Ask a question about the college..." required autocomplete="off">
+        <button type="submit" class="btn-primary" style="padding: 12px 28px;">
+            <i class="fa-solid fa-paper-plane"></i> Send
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+{% endblock %}

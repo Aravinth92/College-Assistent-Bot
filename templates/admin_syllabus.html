@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Syllabus - College Assistant Bot{% endblock %}
+{% block header_title %}Syllabus & Subject Management{% endblock %}
+{% block header_subtitle %}Add, update, and manage academic subjects, credit allocations, and unit syllabus content{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 30px;">
+
+    <!-- Action Bar & Add Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <h3><i class="fa-solid fa-book-bookmark" style="color: var(--accent-oxford); margin-right: 8px;"></i> Subject & Syllabus Catalog</h3>
+        <button class="btn-primary" onclick="openAddModal()">
+            <i class="fa-solid fa-plus"></i> Add New Subject / Syllabus
+        </button>
+    </div>
+
+    <!-- Subjects Data Table -->
+    <section class="glass-panel" style="padding: 24px;">
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Subject Name</th>
+                        <th>Department</th>
+                        <th>Course</th>
+                        <th>Sem</th>
+                        <th>Credits</th>
+                        <th>Syllabus Preview</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if subjects %}
+                        {% for item in subjects %}
+                            <tr>
+                                <td><span class="badge badge-primary" style="font-weight: 700;">{{ item.code }}</span></td>
+                                <td><strong>{{ item.name }}</strong></td>
+                                <td>{{ item.dept_name or 'N/A' }}</td>
+                                <td>{{ item.course_code or 'N/A' }}</td>
+                                <td>Sem {{ item.semester }}</td>
+                                <td>{{ item.credits }} Credits</td>
+                                <td>
+                                    <div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; color: var(--text-secondary);">
+                                        {{ item.syllabus_content[:60] if item.syllabus_content else 'No syllabus content' }}...
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" 
+                                                onclick='editSubject({{ item | tojson | safe }})'>
+                                            <i class="fa-solid fa-pen"></i> Edit
+                                        </button>
+                                        <form action="{{ url_for('delete_subject', subject_id=item.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this subject?');" style="display: inline;">
+                                            <button type="submit" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; color: var(--error-red); border-color: rgba(220, 38, 38, 0.3);">
+                                                <i class="fa-solid fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 30px; color: var(--text-secondary);">
+                                No subjects configured yet. Click "Add New Subject" above to get started.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<!-- Modal for Add/Edit Subject -->
+<div id="subjectModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 650px; padding: 30px; background: #ffffff; max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+            <h3 id="modalTitle" style="color: var(--accent-oxford);"><i class="fa-solid fa-book-bookmark"></i> Add New Subject</h3>
+            <button onclick="closeModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <form id="subjectForm" action="{{ url_for('manage_syllabus') }}" method="POST">
+            <input type="hidden" id="subject_id" name="subject_id" value="">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="sub-name">Subject Name</label>
+                    <input type="text" id="sub-name" name="name" class="form-control" placeholder="e.g. Data Structures & Algorithms" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sub-code">Subject Code</label>
+                    <input type="text" id="sub-code" name="code" class="form-control" placeholder="e.g. CS301" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="sub-dept">Department</label>
+                    <select id="sub-dept" name="department_id" class="form-control" required>
+                        <option value="">Select Department</option>
+                        {% for d in departments %}
+                            <option value="{{ d.id }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sub-course">Course Program</label>
+                    <select id="sub-course" name="course_id" class="form-control" required>
+                        <option value="">Select Course</option>
+                        {% for c in courses %}
+                            <option value="{{ c.id }}">{{ c.name }} ({{ c.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="sub-sem">Semester (1-8)</label>
+                    <input type="number" id="sub-sem" name="semester" class="form-control" min="1" max="8" value="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="sub-credits">Credits Allocation</label>
+                    <input type="number" id="sub-credits" name="credits" class="form-control" min="1" max="10" value="3" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sub-content">Detailed Syllabus & Unit Topics</label>
+                <textarea id="sub-content" name="syllabus_content" class="form-control" rows="6" placeholder="Unit 1: Stacks & Queues...&#10;Unit 2: Trees & Graphs...&#10;Reference Books: Mark Allen Weiss..." required></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Subject</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function openAddModal() {
+        document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-plus"></i> Add New Subject';
+        document.getElementById('subject_id').value = '';
+        document.getElementById('subjectForm').reset();
+        document.getElementById('subjectModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('subjectModal').style.display = 'none';
+    }
+
+    function editSubject(data) {
+        document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen"></i> Edit Subject & Syllabus';
+        document.getElementById('subject_id').value = data.id;
+        document.getElementById('sub-name').value = data.name;
+        document.getElementById('sub-code').value = data.code;
+        document.getElementById('sub-dept').value = data.department_id || '';
+        document.getElementById('sub-course').value = data.course_id || '';
+        document.getElementById('sub-sem').value = data.semester || 1;
+        document.getElementById('sub-credits').value = data.credits || 3;
+        document.getElementById('sub-content').value = data.syllabus_content || '';
+        
+        document.getElementById('subjectModal').style.display = 'flex';
+    }
+</script>
+{% endblock %}

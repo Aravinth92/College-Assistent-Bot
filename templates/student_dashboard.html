@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - College Assistant Bot{% endblock %}
+{% block header_title %}Student Hub{% endblock %}
+{% block header_subtitle %}Overview of your college profile, announcements, and quick tools{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;">
+    
+    <!-- Left Column -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        
+        <!-- Profile Details -->
+        <section class="glass-panel" style="padding: 24px;">
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                <div class="user-avatar" style="width: 50px; height: 50px; font-size: 1.5rem;">👨‍🎓</div>
+                <div>
+                    <h3 style="font-weight: 700;">{{ student.name if student else session.get('username') }}</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Student ID: {{ student.student_id if student else 'N/A' }}</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-graduation-cap"></i> Department</span>
+                    <span style="font-weight: 500;">{{ student.dept_name if student and student.dept_name else 'Unassigned' }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-book"></i> Course</span>
+                    <span style="font-weight: 500;">{{ student.course_name if student and student.course_name else 'Unassigned' }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-calendar-days"></i> Current Year</span>
+                    <span style="font-weight: 500;">{{ student.year if student else 'N/A' }} Year</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-envelope"></i> Email</span>
+                    <span style="font-weight: 500;">{{ session.get('email') }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                    <span style="color: var(--text-secondary);"><i class="fa-solid fa-phone"></i> Phone</span>
+                    <span style="font-weight: 500;">{{ student.phone if student and student.phone else 'N/A' }}</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; text-align: center;">
+                <a href="{{ url_for('student_chatbot') }}" class="btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fa-solid fa-comments"></i> Ask College Assistant Bot
+                </a>
+            </div>
+        </section>
+
+        <!-- Announcements Section -->
+        <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-bullhorn" style="color: var(--accent-cyan);"></i> Latest Notices
+                </h3>
+                <span class="badge badge-primary">{{ announcements | length }} Notices</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; max-height: 380px; overflow-y: auto; padding-right: 5px;">
+                {% if announcements %}
+                    {% for note in announcements %}
+                        <div class="glass-panel" style="padding: 16px; background: rgba(30, 58, 138, 0.02); display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                <h4 style="font-size: 1rem; font-weight: 600;">{{ note.title }}</h4>
+                                <span class="badge 
+                                    {% if note.category == 'exam' %}badge-danger
+                                    {% elif note.category == 'placement' %}badge-primary
+                                    {% elif note.category == 'holiday' %}badge-success
+                                    {% else %}badge-primary{% endif %}">
+                                    {{ note.category | upper }}
+                                </span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">{{ note.content }}</p>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; text-align: right;">
+                                <i class="fa-solid fa-clock"></i> {{ note.date_posted[:10] }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 20px;">No active announcements posted.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <!-- Right Column -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        
+        <!-- Academic Calendar Info -->
+        <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+            <h3><i class="fa-solid fa-calendar-check" style="color: var(--accent-indigo);"></i> Academic Calendar & Deadlines</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; gap: 16px; align-items: center; padding: 12px; background: rgba(30, 58, 138, 0.02); border-radius: 8px; border-left: 4px solid var(--accent-cyan);">
+                    <div style="text-align: center; font-family: var(--font-heading); min-width: 45px;">
+                        <span style="display: block; font-size: 1.1rem; font-weight: 800; color: var(--accent-cyan);">15</span>
+                        <span style="display: block; font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Sept</span>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 600;">Exam Fee Registration Deadline</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Last date to pay sem exam fees without fine.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 16px; align-items: center; padding: 12px; background: rgba(30, 58, 138, 0.02); border-radius: 8px; border-left: 4px solid var(--accent-indigo);">
+                    <div style="text-align: center; font-family: var(--font-heading); min-width: 45px;">
+                        <span style="display: block; font-size: 1.1rem; font-weight: 800; color: var(--accent-indigo);">22</span>
+                        <span style="display: block; font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Sept</span>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 600;">TCS Campus Drive</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Recruitment drive for final and pre-final year students.</p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 16px; align-items: center; padding: 12px; background: rgba(30, 58, 138, 0.02); border-radius: 8px; border-left: 4px solid var(--success-green);">
+                    <div style="text-align: center; font-family: var(--font-heading); min-width: 45px;">
+                        <span style="display: block; font-size: 1.1rem; font-weight: 800; color: var(--success-green);">05</span>
+                        <span style="display: block; font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Oct</span>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 600;">Mid-Semester Assessment Begins</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">Commencement of 1st internal assessment exams.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick FAQs Accordion -->
+        <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 15px;">
+            <h3><i class="fa-solid fa-clipboard-question" style="color: var(--accent-cyan);"></i> Quick FAQs</h3>
+            
+            <div style="display: flex; flex-direction: column;">
+                {% if faqs %}
+                    {% for faq in faqs[:4] %}
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFaq(this)">
+                                <span>{{ faq.question }}</span>
+                                <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; color: var(--text-secondary); transition: var(--transition-smooth);"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p style="font-size: 0.9rem; margin-top: 8px;">{{ faq.answer }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div style="text-align: right; margin-top: 15px;">
+                        <a href="{{ url_for('student_faqs') }}" style="color: var(--accent-indigo); font-size: 0.85rem; font-weight: 600;">View All FAQs <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 20px;">No FAQs available.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script>
+    function toggleFaq(el) {
+        const item = el.parentElement;
+        const icon = el.querySelector('.fa-chevron-down');
+        const isActive = item.classList.contains('active');
+        
+        document.querySelectorAll('.faq-item').forEach(i => {
+            i.classList.remove('active');
+            const iconOther = i.querySelector('.fa-chevron-down');
+            if (iconOther) iconOther.style.transform = 'rotate(0deg)';
+        });
+        
+        if (!isActive) {
+            item.classList.add('active');
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty & Staff Directory - College Assistant Bot{% endblock %}
+{% block header_title %}Faculty & Academic Roster{% endblock %}
+{% block header_subtitle %}Explore professor profiles, qualifications, research specializations, and office hours contact info{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- Filter & Search Controls -->
+    <section class="glass-panel" style="padding: 20px;">
+        <form method="GET" action="{{ url_for('student_faculty') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) 120px; gap: 15px; align-items: end;">
+            
+            <div>
+                <label class="form-label" for="filter-dept">Filter by Department</label>
+                <select id="filter-dept" name="department_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                        <option value="{{ d.id }}" {% if selected_dept == d.id|string %}selected{% endif %}>{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="position: relative;">
+                <label class="form-label" for="faculty-search">Search Roster</label>
+                <input type="text" id="faculty-search" class="form-control" placeholder="Name or specialization (e.g., Rajesh, AI)..." onkeyup="filterFaculty()">
+            </div>
+
+            <div>
+                <a href="{{ url_for('student_faculty') }}" class="btn-secondary" style="width: 100%; text-align: center; justify-content: center;">Reset</a>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- Faculty Cards Grid -->
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;" id="faculty-grid">
+        {% if faculty %}
+            {% for item in faculty %}
+                <div class="glass-panel faculty-card" style="padding: 24px; background: #ffffff; display: flex; flex-direction: column; justify-content: space-between; transition: var(--transition-smooth);" data-search="{{ item.name | lower }} {{ item.designation | lower }} {{ item.specialization | lower if item.specialization else '' }}">
+                    
+                    <div>
+                        <!-- Header avatar & info -->
+                        <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px;">
+                            <div class="user-avatar" style="width: 54px; height: 54px; font-size: 1.6rem; border-radius: 14px; background: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%); flex-shrink: 0;">
+                                👨‍🏫
+                            </div>
+                            
+                            <div>
+                                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--accent-oxford); margin-bottom: 4px;">{{ item.name }}</h3>
+                                <span class="badge badge-primary" style="font-size: 0.8rem; font-weight: 600;">{{ item.designation }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Department Tag -->
+                        <div style="margin-bottom: 14px; font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-building-columns" style="color: var(--accent-indigo);"></i>
+                            <strong style="color: var(--text-primary);">{{ item.dept_name or 'General Faculty' }}</strong>
+                        </div>
+
+                        <!-- Qualification -->
+                        {% if item.qualification %}
+                            <div style="margin-bottom: 12px; font-size: 0.85rem; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 2px;">Qualification:</span>
+                                <span style="color: var(--text-primary); font-weight: 500;">{{ item.qualification }}</span>
+                            </div>
+                        {% endif %}
+
+                        <!-- Specialization -->
+                        {% if item.specialization %}
+                            <div style="margin-bottom: 16px;">
+                                <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 6px;">Research / Teaching Areas:</span>
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                    {% for area in item.specialization.split(',') %}
+                                        <span class="badge" style="background: rgba(79, 70, 229, 0.08); color: var(--accent-indigo); border: 1px solid rgba(79, 70, 229, 0.2); font-size: 0.75rem;">
+                                            {{ area.strip() }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Footer Contact Details -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                        {% if item.office_location %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-location-dot" style="color: var(--accent-oxford); width: 16px;"></i>
+                                <span>{{ item.office_location }}</span>
+                            </div>
+                        {% endif %}
+
+                        {% if item.email %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-envelope" style="color: var(--accent-indigo); width: 16px;"></i>
+                                <a href="mailto:{{ item.email }}" style="color: var(--accent-indigo); font-weight: 500;">{{ item.email }}</a>
+                            </div>
+                        {% endif %}
+
+                        {% if item.phone %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-phone" style="color: var(--success-green); width: 16px;"></i>
+                                <span>{{ item.phone }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="glass-panel" style="grid-column: 1 / -1; padding: 40px; text-align: center;">
+                <i class="fa-solid fa-user-slash" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                <p style="color: var(--text-secondary);">No faculty members found for the selected department.</p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+
+<script>
+    function filterFaculty() {
+        const query = document.getElementById('faculty-search').value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.faculty-card');
+        cards.forEach(card => {
+            const text = card.getAttribute('data-search');
+            if (text.includes(query)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

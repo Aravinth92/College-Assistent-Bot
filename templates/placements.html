@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Placements - College Assistant Bot{% endblock %}
+{% block header_title %}Campus Placements{% endblock %}
+{% block header_subtitle %}Overview of recruiting companies, salary packages, and active drive schedules{% endblock %}
+
+{% block content %}
+{% if session.get('role') == 'admin' %}
+<!-- Admin View: Split Grid with Add/Edit Form and Placements Table -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
+    
+    <!-- Add/Edit Placement Form -->
+    <section class="glass-panel" style="padding: 24px;">
+        <h3 id="form-title" style="margin-bottom: 20px;"><i class="fa-solid fa-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Add Placement Drive</h3>
+        
+        <form id="placement-form" action="{{ url_for('manage_placements') }}" method="POST">
+            <input type="hidden" id="placement-action" name="action" value="add">
+            <input type="hidden" id="placement-id-field" name="placement_id" value="">
+            
+            <div class="form-group">
+                <label class="form-label" for="place-company">Company Name</label>
+                <input type="text" id="place-company" name="company_name" class="form-control" placeholder="e.g. Microsoft" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="place-role">Job Role</label>
+                <input type="text" id="place-role" name="job_role" class="form-control" placeholder="e.g. Software Engineer Intern" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label" for="place-salary">Salary / Package</label>
+                    <input type="text" id="place-salary" name="salary" class="form-control" placeholder="e.g. 12 LPA" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="place-date">Recruitment Date</label>
+                    <input type="text" id="place-date" name="recruitment_date" class="form-control" placeholder="e.g. Oct 10, 2026" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="place-eligible">Eligibility Criteria</label>
+                <input type="text" id="place-eligible" name="eligibility" class="form-control" placeholder="e.g. B.Tech CSE, CGPA > 8.0" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="place-skills">Required Skills</label>
+                <input type="text" id="place-skills" name="skills_required" class="form-control" placeholder="e.g. Data Structures, Algorithms">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="place-intern">Internship Information (If any)</label>
+                <textarea id="place-intern" name="internship_info" class="form-control" rows="2" placeholder="Stipend or training durations..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 2; justify-content: center;">
+                    <i class="fa-solid fa-save"></i> Save Placement
+                </button>
+                <button type="button" id="reset-btn" class="btn-secondary" style="flex: 1;" onclick="clearForm()">
+                    Reset
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Placement Listings Table -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h3><i class="fa-solid fa-briefcase" style="color: var(--accent-violet); margin-right: 8px;"></i> Placement Drives Directory</h3>
+        
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Company & Role</th>
+                        <th>Salary</th>
+                        <th>Drive Date</th>
+                        <th>Eligibility</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if placements %}
+                        {% for p in placements %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600;">{{ p.company_name }}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ p.job_role }}</div>
+                                </td>
+                                <td><span style="font-weight: 600; color: var(--accent-cyan);">{{ p.salary }}</span></td>
+                                <td>{{ p.recruitment_date }}</td>
+                                <td><span style="font-size: 0.85rem; color: var(--text-secondary);" title="{{ p.skills_required }}">{{ p.eligibility }}</span></td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn-primary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px;"
+                                                onclick="editPlacement('{{ p.id }}', '{{ p.company_name }}', '{{ p.job_role }}', '{{ p.salary }}', '{{ p.recruitment_date }}', '{{ p.eligibility }}', '{{ p.skills_required or '' }}', '{{ p.internship_info or '' }}')">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <form action="{{ url_for('delete_placement', placement_id=p.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this placement drive?')">
+                                            <button type="submit" class="btn-secondary" style="padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; color: var(--error-red); border-color: rgba(239, 68, 68, 0.2);">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 20px;">No placement drives scheduled.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+{% block extra_scripts %}
+<script>
+    function editPlacement(id, company, role, salary, date, eligibility, skills, intern) {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: var(--accent-cyan); margin-right: 8px;"></i> Edit Placement Drive';
+        document.getElementById('placement-action').value = 'edit';
+        document.getElementById('placement-id-field').value = id;
+        
+        document.getElementById('place-company').value = company;
+        document.getElementById('place-role').value = role;
+        document.getElementById('place-salary').value = salary;
+        document.getElementById('place-date').value = date;
+        document.getElementById('place-eligible').value = eligibility;
+        document.getElementById('place-skills').value = skills;
+        document.getElementById('place-intern').value = intern;
+    }
+
+    function clearForm() {
+        document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-plus" style="color: var(--accent-cyan); margin-right: 8px;"></i> Add Placement Drive';
+        document.getElementById('placement-action').value = 'add';
+        document.getElementById('placement-id-field').value = '';
+        document.getElementById('placement-form').reset();
+    }
+</script>
+{% endblock %}
+
+{% else %}
+<!-- Student View: Placement Drives Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 30px;">
+    {% if placements %}
+        {% for p in placements %}
+            <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span class="badge badge-success" style="font-size: 0.75rem;"><i class="fa-solid fa-calendar-day"></i> {{ p.recruitment_date }}</span>
+                        <span style="font-weight: 700; color: var(--accent-cyan); font-size: 1.1rem;">{{ p.salary }}</span>
+                    </div>
+                    
+                    <h3 style="font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">{{ p.company_name }}</h3>
+                    <h4 style="font-size: 0.95rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 16px;">{{ p.job_role }}</h4>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-bottom: 16px;">
+                        <div style="font-size: 0.9rem;">
+                            <span style="color: var(--text-secondary); font-weight: 500;"><i class="fa-solid fa-circle-exclamation"></i> Eligibility:</span>
+                            <span style="color: var(--text-primary); margin-left: 8px;">{{ p.eligibility }}</span>
+                        </div>
+                        <div style="font-size: 0.9rem;">
+                            <span style="color: var(--text-secondary); font-weight: 500;"><i class="fa-solid fa-brain"></i> Required Skills:</span>
+                            <span style="color: var(--text-primary); margin-left: 8px;">{{ p.skills_required or 'General aptitude & programming' }}</span>
+                        </div>
+                    </div>
+
+                    {% if p.internship_info %}
+                        <div style="margin-top: 12px;">
+                            <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 6px;">Internship Details</span>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                {{ p.internship_info }}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <a href="{{ url_for('student_chatbot') }}" class="btn-primary" style="justify-content: center; width: 100%; font-size: 0.9rem;">
+                    <i class="fa-solid fa-comment-dots"></i> Ask about Recruitment Details
+                </a>
+            </section>
+        {% endfor %}
+    {% else %}
+        <div class="glass-panel" style="padding: 40px; text-align: center; grid-column: 1 / -1;">
+            <i class="fa-solid fa-briefcase" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+            <p style="color: var(--text-secondary);">No placement notifications posted currently.</p>
+        </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

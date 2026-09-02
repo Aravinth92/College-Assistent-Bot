@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - College Assistant Bot{% endblock %}
+{% block header_title %}Admin Control Center{% endblock %}
+{% block header_subtitle %}System statistics, query monitoring, and unanswered student requests{% endblock %}
+
+{% block content %}
+<!-- Admin Statistics Grid -->
+<div class="stats-grid">
+    <div class="glass-panel stat-card">
+        <div>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Total Students</span>
+            <div class="stat-value">{{ stats.students }}</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-user-graduate"></i></div>
+    </div>
+    
+    <div class="glass-panel stat-card">
+        <div>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Departments</span>
+            <div class="stat-value">{{ stats.departments }}</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-building-columns"></i></div>
+    </div>
+    
+    <div class="glass-panel stat-card">
+        <div>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Courses Offered</span>
+            <div class="stat-value">{{ stats.courses }}</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-book-open"></i></div>
+    </div>
+    
+    <div class="glass-panel stat-card">
+        <div>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">FAQs Configured</span>
+            <div class="stat-value">{{ stats.faqs }}</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-circle-question"></i></div>
+    </div>
+
+    <div class="glass-panel stat-card">
+        <div>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Total Queries</span>
+            <div class="stat-value">{{ stats.total_queries }}</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-comments"></i></div>
+    </div>
+
+    <div class="glass-panel stat-card" style="border-left: 4px solid var(--warning-amber);">
+        <a href="{{ url_for('admin_inquiries', filter='pending') }}" style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <div>
+                <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Pending Inquiries</span>
+                <div class="stat-value" style="color: var(--warning-amber);">{{ stats.pending_inquiries }}</div>
+            </div>
+            <div class="stat-icon" style="color: var(--warning-amber);"><i class="fa-solid fa-clipboard-question"></i></div>
+        </a>
+    </div>
+
+    <div class="glass-panel stat-card" style="border-color: rgba(239, 68, 68, 0.4);">
+        <div>
+            <span style="color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">Unanswered</span>
+            <div class="stat-value" style="color: var(--error-red); -webkit-text-fill-color: var(--error-red);">{{ stats.unanswered_queries }}</div>
+        </div>
+        <div class="stat-icon" style="color: var(--error-red); -webkit-text-fill-color: var(--error-red);"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    </div>
+</div>
+
+<!-- Grid Layout: Chart and Unanswered Questions -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 10px;">
+    
+    <!-- Left: Recent Chat History Monitoring -->
+    <section class="glass-panel" style="padding: 24px;">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-cyan); margin-right: 8px;"></i> Recent Chatbot Activity</h3>
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Student</th>
+                        <th>Question</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if chat_history %}
+                        {% for log in chat_history %}
+                            <tr>
+                                <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ log.timestamp[11:16] }} ({{ log.timestamp[5:10] }})</td>
+                                <td><strong>{{ log.username or 'Guest' }}</strong></td>
+                                <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ log.question }}">{{ log.question }}</td>
+                                <td>
+                                    {% if log.is_answered == 1 %}
+                                        <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Answered</span>
+                                    {% else %}
+                                        <span class="badge badge-danger"><i class="fa-solid fa-circle-xmark"></i> Unanswered</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-secondary);">No chatbot queries logged yet.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Right: Chart Analytics Widget -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+        <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-chart-pie" style="color: var(--accent-violet); margin-right: 8px;"></i> Query Breakdown</h3>
+        <div class="chart-container" style="flex-grow: 1; min-height: 220px;">
+            <canvas id="queryStatsChart"></canvas>
+        </div>
+    </section>
+</div>
+
+<!-- Bottom Section: Unanswered Questions Actions -->
+<section class="glass-panel" style="padding: 24px; margin-top: 10px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3><i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 8px;"></i> Action Required: Unanswered Questions</h3>
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">Queries chatbot couldn't resolve from knowledge base</span>
+    </div>
+    
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Student</th>
+                    <th>Unanswered Question</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if unanswered_list %}
+                    {% for item in unanswered_list %}
+                        <tr>
+                            <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ item.timestamp }}</td>
+                            <td>{{ item.username or 'Guest' }}</td>
+                            <td><code style="background: rgba(239, 68, 68, 0.1); padding: 4px 8px; border-radius: 4px; color: #f87171;">{{ item.question }}</code></td>
+                            <td>
+                                <!-- Quick FAQ Add Link -->
+                                <a href="{{ url_for('manage_faqs', add_from_question=item.question) }}" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px;">
+                                    <i class="fa-solid fa-plus"></i> Add as FAQ
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                            <i class="fa-solid fa-face-smile" style="font-size: 2rem; color: var(--success-green); display: block; margin-bottom: 10px;"></i>
+                            Great! No unanswered questions found. The chatbot is fully aligned with student queries.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('queryStatsChart').getContext('2d');
+        
+        const answered = {{ stats.total_queries - stats.unanswered_queries }};
+        const unanswered = {{ stats.unanswered_queries }};
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Answered', 'Unanswered'],
+                datasets: [{
+                    data: [answered, unanswered],
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#94a3b8',
+                            font: {
+                                family: 'Inter'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Prospectus RAG Management - College Assistant Bot{% endblock %}
+{% block header_title %}Prospectus RAG Vector Knowledge Base{% endblock %}
+{% block header_subtitle %}Upload prospectus PDFs to split, generate Gemini embeddings, and extend chatbot capabilities{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+    
+    <!-- Upload Form Section -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+        <section class="glass-panel" style="padding: 24px;">
+            <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-file-arrow-up" style="color: var(--accent-cyan); margin-right: 8px;"></i> Upload College Documents</h3>
+            
+            <form action="{{ url_for('manage_documents') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label" for="doc-file">Select PDF Document</label>
+                    <input type="file" id="doc-file" name="file" class="form-control" accept=".pdf" required style="padding: 10px;">
+                    <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 6px;">Supported file: .pdf format only (Maximum size 10MB)</p>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Process & Add to RAG DB
+                </button>
+            </form>
+        </section>
+
+        <!-- RAG Architecture Info Card -->
+        <section class="glass-panel" style="padding: 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);">
+            <h3 style="margin-bottom: 12px; color: var(--text-primary);"><i class="fa-solid fa-circle-info" style="color: var(--accent-cyan); margin-right: 8px;"></i> How RAG Chunking Works</h3>
+            <ol style="color: var(--text-secondary); font-size: 0.88rem; display: flex; flex-direction: column; gap: 10px; padding-left: 20px; line-height: 1.5;">
+                <li><strong>PDF Text Extraction:</strong> The system reads all page sheets from the uploaded prospectus.</li>
+                <li><strong>Chunk Separation:</strong> Text is segmented into 800-character units with a 150-character safety overlap.</li>
+                <li><strong>Vector Representation:</strong> Gemini API's <code>text-embedding-004</code> models encode chunks into 768-dimension vectors.</li>
+                <li><strong>Binary Storage:</strong> Vector arrays are packed and saved directly in SQLite as fast binary blobs.</li>
+                <li><strong>Query Retrieval:</strong> Questions from students are matches using cosine similarity against prospectus vectors to extract context.</li>
+            </ol>
+        </section>
+    </div>
+
+    <!-- Active Documents Directory Table -->
+    <section class="glass-panel" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        <h3><i class="fa-solid fa-folder-open" style="color: var(--accent-violet); margin-right: 8px;"></i> Active Documents Knowledge Base</h3>
+        
+        <div class="table-container">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Uploaded On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if documents %}
+                        {% for doc in documents %}
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-file-pdf" style="color: #ef4444; font-size: 1.2rem;"></i>
+                                        {{ doc.filename }}
+                                    </div>
+                                </td>
+                                <td style="font-size: 0.85rem; color: var(--text-secondary);">{{ doc.uploaded_at }}</td>
+                                <td>
+                                    <form action="{{ url_for('delete_document', doc_id=doc.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this document? This will delete the PDF and clear all its text chunks and precalculated embeddings from the chatbot vector index.')">
+                                        <button type="submit" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; color: var(--error-red); border-color: rgba(239, 68, 68, 0.2); display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fa-solid fa-trash-can"></i> Wipe Chunks
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                                <i class="fa-solid fa-folder-open" style="font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.5;"></i>
+                                No PDF prospectus uploaded. The chatbot currently answers questions using SQLite structured fields and FAQs only.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

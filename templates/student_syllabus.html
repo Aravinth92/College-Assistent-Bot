@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Syllabus - College Assistant Bot{% endblock %}
+{% block header_title %}Academic Syllabus Catalog{% endblock %}
+{% block header_subtitle %}Browse curriculum syllabus, course modules, unit topics, and reference books{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- Filter & Search Controls -->
+    <section class="glass-panel" style="padding: 20px;">
+        <form method="GET" action="{{ url_for('student_syllabus') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) 120px; gap: 15px; align-items: end;">
+            
+            <div>
+                <label class="form-label" for="filter-dept">Department</label>
+                <select id="filter-dept" name="department_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                        <option value="{{ d.id }}" {% if selected_dept == d.id|string %}selected{% endif %}>{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="filter-course">Course Program</label>
+                <select id="filter-course" name="course_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Courses</option>
+                    {% for c in courses %}
+                        <option value="{{ c.id }}" {% if selected_course == c.id|string %}selected{% endif %}>{{ c.name }} ({{ c.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="filter-sem">Semester</label>
+                <select id="filter-sem" name="semester" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Semesters</option>
+                    {% for s in range(1, 9) %}
+                        <option value="{{ s }}" {% if selected_sem == s|string %}selected{% endif %}>Semester {{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('student_syllabus') }}" class="btn-secondary" style="width: 100%; text-align: center; justify-content: center;">Reset</a>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- Search input -->
+    <div style="position: relative;">
+        <input type="text" id="subject-search" class="form-control" placeholder="Search subject by name or code (e.g., CS301, Data Structures)..." style="padding-left: 45px; height: 50px; font-size: 1rem; border-radius: 12px;" onkeyup="filterSubjects()">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem;"></i>
+    </div>
+
+    <!-- Subjects & Syllabus Accordion Cards -->
+    <section style="display: flex; flex-direction: column; gap: 20px;" id="subjects-container">
+        {% if subjects %}
+            {% for item in subjects %}
+                <div class="glass-panel subject-card" style="padding: 24px; background: #ffffff;" data-title="{{ item.name | lower }} {{ item.code | lower }}">
+                    
+                    <!-- Subject Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                <span class="badge badge-primary" style="font-size: 0.85rem; font-weight: 700; padding: 6px 12px;">{{ item.code }}</span>
+                                <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--accent-oxford);">{{ item.name }}</h3>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-secondary); flex-wrap: wrap;">
+                                <span><i class="fa-solid fa-building-columns"></i> {{ item.dept_name or 'General' }}</span>
+                                <span><i class="fa-solid fa-graduation-cap"></i> {{ item.course_code or 'Core' }}</span>
+                                <span><i class="fa-solid fa-layer-group"></i> Semester {{ item.semester }}</span>
+                                <span><i class="fa-solid fa-award"></i> {{ item.credits }} Credits</span>
+                            </div>
+                        </div>
+
+                        <button class="btn-secondary" onclick="toggleSyllabus(this)" style="padding: 8px 16px; font-size: 0.85rem;">
+                            <i class="fa-solid fa-chevron-down"></i> View Syllabus Details
+                        </button>
+                    </div>
+
+                    <!-- Expandable Syllabus Details -->
+                    <div class="syllabus-detail" style="display: none; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 15px;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--accent-oxford); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.04em;">
+                            <i class="fa-solid fa-list-check" style="color: var(--accent-indigo);"></i> Unit Topics & Module Outline
+                        </h4>
+                        
+                        <div style="background: #f8fafc; padding: 18px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 0.95rem; line-height: 1.7; color: var(--text-primary); white-space: pre-line;">
+                            {{ item.syllabus_content or 'Syllabus topics currently under curriculum review.' }}
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="glass-panel" style="padding: 40px; text-align: center;">
+                <i class="fa-solid fa-book-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                <p style="color: var(--text-secondary);">No syllabus subjects found matching your selected criteria.</p>
+            </div>
+        {% endif %}
+    </section>
+
+</div>
+
+<script>
+    function toggleSyllabus(btn) {
+        const card = btn.closest('.subject-card');
+        const detail = card.querySelector('.syllabus-detail');
+        const icon = btn.querySelector('i');
+        
+        if (detail.style.display === 'none' || !detail.style.display) {
+            detail.style.display = 'block';
+            icon.className = 'fa-solid fa-chevron-up';
+            btn.style.background = 'var(--accent-oxford)';
+            btn.style.color = '#ffffff';
+        } else {
+            detail.style.display = 'none';
+            icon.className = 'fa-solid fa-chevron-down';
+            btn.style.background = '#ffffff';
+            btn.style.color = 'var(--text-primary)';
+        }
+    }
+
+    function filterSubjects() {
+        const query = document.getElementById('subject-search').value.toLowerCase().strip();
+        const cards = document.querySelectorAll('.subject-card');
+        cards.forEach(card => {
+            const text = card.getAttribute('data-title');
+            if (text.includes(query)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

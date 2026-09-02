@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal Login - College Assistant Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .admin-login-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100vw;
+            background: radial-gradient(circle at 10% 20%, rgba(15, 23, 42, 0.95) 0%, transparent 80%),
+                        radial-gradient(circle at 90% 80%, rgba(30, 58, 138, 0.9) 0%, transparent 80%),
+                        #0f172a;
+        }
+
+        .admin-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 40px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 2px solid var(--accent-oxford);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .admin-badge-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: var(--accent-oxford);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 16px auto;
+            box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+        }
+    </style>
+</head>
+<body class="admin-login-body">
+
+    <div class="admin-card">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div class="admin-badge-icon">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h2 style="font-size: 1.7rem; font-weight: 800; color: var(--accent-oxford);">Admin Login Portal</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 5px;">Authorized Campus Administrative Access</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="margin-bottom: 20px;">
+                    {% for category, msg in messages %}
+                        <div class="glass-panel" style="padding: 10px 15px; border-left: 4px solid {% if category == 'error' %}var(--error-red){% else %}var(--success-green){% endif %}; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+                            <span>{{ msg }}</span>
+                            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 0 5px;"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('admin_login') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label" for="admin-username">Admin Username or Email</label>
+                <div style="position: relative;">
+                    <input type="text" id="admin-username" name="username" class="form-control" placeholder="admin@college.com" required style="padding-left: 40px;">
+                    <i class="fa-solid fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="admin-password">Password</label>
+                <div style="position: relative;">
+                    <input type="password" id="admin-password" name="password" class="form-control" placeholder="••••••••" required style="padding-left: 40px;">
+                    <i class="fa-solid fa-key" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 15px; padding: 14px; font-size: 1rem;">
+                <i class="fa-solid fa-lock"></i> Access Admin Dashboard
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary);">
+            <p>Are you a student?</p>
+            <a href="{{ url_for('login') }}" style="color: var(--accent-indigo); font-weight: 600; text-decoration: none;">
+                <i class="fa-solid fa-graduation-cap"></i> Switch to Student Login Portal
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
