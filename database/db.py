@@ -236,7 +236,11 @@ def seed_db():
         ("Computer Science & Engineering", "Dr. Rajesh Kumar", 15, "DBMS Lab, Networks Lab, AI Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
         ("Electronics & Communication Engineering", "Dr. S. K. Sharma", 12, "Microcontroller Lab, DSP Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
         ("Mechanical Engineering", "Dr. Amit Patel", 10, "CAD/CAM Lab, Thermodynamics Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
-        ("Information Technology", "Dr. Neha Gupta", 8, "Web Tech Lab, Cloud Computing Lab", "Mon-Fri: 9:00 AM - 4:30 PM")
+        ("Information Technology", "Dr. Neha Gupta", 8, "Web Tech Lab, Cloud Computing Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
+        ("Civil Engineering", "Dr. K. R. Ramanathan", 14, "Structural Engg Lab, Surveying Lab, Concrete Tech Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
+        ("Electrical & Electronics Engineering", "Dr. V. Meenakshi", 11, "Power Systems Lab, Electrical Machines Lab, Control Systems Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
+        ("Artificial Intelligence & Data Science", "Dr. R. Anitha", 10, "Deep Learning Lab, Data Analytics Lab, High Performance Computing Lab", "Mon-Fri: 9:00 AM - 4:30 PM"),
+        ("Master of Business Administration (MBA)", "Dr. S. Venkataraman", 8, "Business Analytics Lab, Communication Lab, Finance Lab", "Mon-Fri: 9:00 AM - 4:30 PM")
     ]
     cursor.executemany('''
         INSERT INTO departments (name, hod, faculty_count, labs, timetable)
@@ -252,7 +256,11 @@ def seed_db():
         ("Bachelor of Technology in Computer Science", "BTECH-CSE", dept_map["Computer Science & Engineering"], "4 Years", "10+2 with Physics, Chemistry, Math (Minimum 60%)", 125000.0, "Semester 1-8 syllabus covering OS, DS, Algo, AI, Databases", 120),
         ("Bachelor of Technology in Electronics", "BTECH-ECE", dept_map["Electronics & Communication Engineering"], "4 Years", "10+2 with Physics, Chemistry, Math (Minimum 55%)", 115000.0, "Semester 1-8 syllabus covering VLSI, Signal processing, Microcontrollers", 60),
         ("Bachelor of Technology in Mechanical", "BTECH-ME", dept_map["Mechanical Engineering"], "4 Years", "10+2 with Physics, Chemistry, Math (Minimum 55%)", 110000.0, "Semester 1-8 syllabus covering Solid Mechanics, CAD, Thermal power", 60),
-        ("Master of Technology in Computer Science", "MTECH-CSE", dept_map["Computer Science & Engineering"], "2 Years", "B.Tech/B.E. in CSE or related (Minimum 60%)", 85000.0, "Advanced algorithms, Big data analytics, Deep learning", 18)
+        ("Master of Technology in Computer Science", "MTECH-CSE", dept_map["Computer Science & Engineering"], "2 Years", "B.Tech/B.E. in CSE or related (Minimum 60%)", 85000.0, "Advanced algorithms, Big data analytics, Deep learning", 18),
+        ("Bachelor of Technology in Civil Engineering", "BTECH-CIVIL", dept_map["Civil Engineering"], "4 Years", "10+2 with Physics, Chemistry, Math (Minimum 55%)", 105000.0, "Semesters 1-8 covering Surveying, Structural Analysis, RCC Design, Environmental Engg", 60),
+        ("Bachelor of Technology in Electrical Engineering", "BTECH-EEE", dept_map["Electrical & Electronics Engineering"], "4 Years", "10+2 with Physics, Chemistry, Math (Minimum 55%)", 110000.0, "Semesters 1-8 covering Electrical Machines, Power Systems, Control Systems, Power Electronics", 60),
+        ("Bachelor of Technology in AI & Data Science", "BTECH-AIDS", dept_map["Artificial Intelligence & Data Science"], "4 Years", "10+2 with Physics, Chemistry, Math (Minimum 65%)", 135000.0, "Semesters 1-8 covering Machine Learning, Big Data, Deep Learning, NLP, Computer Vision", 120),
+        ("Master of Business Administration", "MBA-GEN", dept_map["Master of Business Administration (MBA)"], "2 Years", "Bachelor Degree in any discipline (Minimum 50%) + TANCET/MAT/CAT Score", 95000.0, "Semesters 1-4 covering Financial Management, Marketing, HR, Business Analytics", 60)
     ]
     cursor.executemany('''
         INSERT INTO courses (name, code, department_id, duration, eligibility, fees, syllabus, seats)
@@ -284,7 +292,11 @@ def seed_db():
         ("Dr. S. K. Sharma", "Professor & HOD", "sharma.ece@college.com", "+91 98765 22001", dept_map["Electronics & Communication Engineering"], "Ph.D. in VLSI Design, M.Tech", "VLSI Design, Signal Processing, Embedded Systems", "ECE Block, Room 201"),
         ("Dr. Ananya Roy", "Assistant Professor", "ananya.ece@college.com", "+91 98765 22002", dept_map["Electronics & Communication Engineering"], "M.Tech in Digital Communications, B.E.", "Wireless Communications, Microcontrollers", "ECE Block, Room 204"),
         ("Dr. Amit Patel", "Professor & HOD", "patel.me@college.com", "+91 98765 33001", dept_map["Mechanical Engineering"], "Ph.D. in Thermal Engineering (IIT Bombay)", "Thermodynamics, Fluid Mechanics, CAD/CAM", "Mech Block, Room 101"),
-        ("Dr. Neha Gupta", "Professor & HOD", "neha.it@college.com", "+91 98765 44001", dept_map["Information Technology"], "Ph.D. in Information Security, M.Tech", "Cybersecurity, Web Technologies, Computer Networks", "IT Block, Room 401")
+        ("Dr. Neha Gupta", "Professor & HOD", "neha.it@college.com", "+91 98765 44001", dept_map["Information Technology"], "Ph.D. in Information Security, M.Tech", "Cybersecurity, Web Technologies, Computer Networks", "IT Block, Room 401"),
+        ("Dr. K. R. Ramanathan", "Professor & HOD", "ramanathan.civil@college.com", "+91 98765 55001", dept_map["Civil Engineering"], "Ph.D. in Structural Engineering (IIT Madras)", "Structural Analysis, Concrete Technology, Earthquake Engg", "Civil Block, Room 101"),
+        ("Dr. V. Meenakshi", "Professor & HOD", "meenakshi.eee@college.com", "+91 98765 66001", dept_map["Electrical & Electronics Engineering"], "Ph.D. in Power Systems (Anna University)", "Smart Grids, Power Electronics, Renewable Energy", "EEE Block, Room 201"),
+        ("Dr. R. Anitha", "Professor & HOD", "anitha.aids@college.com", "+91 98765 77001", dept_map["Artificial Intelligence & Data Science"], "Ph.D. in Machine Learning (IISc Bangalore)", "Deep Learning, Computer Vision, Generative AI", "AIDS Block, Room 301"),
+        ("Dr. S. Venkataraman", "Professor & HOD", "venkat.mba@college.com", "+91 98765 88001", dept_map["Master of Business Administration (MBA)"], "Ph.D. in Financial Management (IIM Kozhikode), MBA", "Corporate Finance, Investment Analysis, Strategic Management", "Management Block, Room 401")
     ]
     cursor.executemany('''
         INSERT INTO faculty (name, designation, email, phone, department_id, qualification, specialization, office_location)
@@ -309,7 +321,19 @@ def seed_db():
          "Unit 1: Semiconductor Diodes, BJT, FET Amplifiers, Operational Amplifiers (Op-Amps).\nUnit 2: Boolean Algebra, Karnaugh Maps, Combinational Circuits (Adders, Mux, Demux).\nUnit 3: Sequential Circuits: Flip-Flops, Counters, Shift Registers.\nUnit 4: A/D and D/A Converters, Waveform Generators.\nReference Books: 'Digital Design' by M. Morris Mano."),
         
         ("Thermodynamics & Fluid Mechanics", "ME301", dept_map["Mechanical Engineering"], course_map["BTECH-ME"], 3, 4, 
-         "Unit 1: Zeroth, First & Second Laws of Thermodynamics, Entropy & Pure Substances.\nUnit 2: Vapor & Gas Power Cycles (Rankine, Otto, Diesel, Dual Cycles).\nUnit 3: Fluid Statics & Kinematics, Bernoulli's Equation, Viscous Flow in Pipes.\nUnit 4: Boundary Layer Theory, Hydraulic Turbines & Pumps.\nReference Books: 'Engineering Thermodynamics' by P. K. Nag.")
+         "Unit 1: Zeroth, First & Second Laws of Thermodynamics, Entropy & Pure Substances.\nUnit 2: Vapor & Gas Power Cycles (Rankine, Otto, Diesel, Dual Cycles).\nUnit 3: Fluid Statics & Kinematics, Bernoulli's Equation, Viscous Flow in Pipes.\nUnit 4: Boundary Layer Theory, Hydraulic Turbines & Pumps.\nReference Books: 'Engineering Thermodynamics' by P. K. Nag."),
+
+        ("Structural Mechanics", "CE301", dept_map["Civil Engineering"], course_map["BTECH-CIVIL"], 3, 4,
+         "Unit 1: Stress & Strain, Bending Moments & Shear Force Diagrams.\nUnit 2: Deflection of Beams, Columns & Struts (Euler Formula).\nUnit 3: Torsion of Shafts, Thin & Thick Cylinders.\nUnit 4: Strain Energy Methods, Slope Deflection Method.\nReference Books: 'Strength of Materials' by R. K. Bansal."),
+
+        ("Electrical Machines I", "EE301", dept_map["Electrical & Electronics Engineering"], course_map["BTECH-EEE"], 3, 4,
+         "Unit 1: Magnetic Circuits, Electromechanical Energy Conversion.\nUnit 2: DC Generators & DC Motors: Performance & Speed Control.\nUnit 3: Single Phase & Three Phase Transformers: Equivalent Circuit & Efficiency.\nUnit 4: Testing of DC Machines & Transformers.\nReference Books: 'Electrical Machinery' by P. S. Bimbhra."),
+
+        ("Machine Learning Algorithms", "AD301", dept_map["Artificial Intelligence & Data Science"], course_map["BTECH-AIDS"], 3, 4,
+         "Unit 1: Linear & Polynomial Regression, Gradient Descent Optimization.\nUnit 2: Classification: Naive Bayes, K-Nearest Neighbors, Logistic Regression.\nUnit 3: Decision Trees, Random Forests, Ensemble Learning (Boosting & Bagging).\nUnit 4: Model Evaluation: Confusion Matrix, ROC-AUC, K-Fold Cross Validation.\nReference Books: 'Pattern Recognition and Machine Learning' by Christopher Bishop."),
+
+        ("Financial Management & Accounting", "MB101", dept_map["Master of Business Administration (MBA)"], course_map["MBA-GEN"], 1, 3,
+         "Unit 1: Accounting Principles, Balance Sheet & Profit & Loss Statement.\nUnit 2: Ratio Analysis, Cash Flow & Fund Flow Statements.\nUnit 3: Capital Budgeting Decisions (NPV, IRR, Payback Period).\nUnit 4: Working Capital Management & Cost of Capital.\nReference Books: 'Financial Management' by I. M. Pandey.")
     ]
     cursor.executemany('''
         INSERT INTO subjects (name, code, department_id, course_id, semester, credits, syllabus_content)
@@ -320,9 +344,9 @@ def seed_db():
     faqs = [
         ("What are the college timings?", "The college functions from 9:00 AM to 4:30 PM, Monday to Friday. Library is open until 6:00 PM.", "General"),
         ("What is the hostel fee?", "The hostel fee is Rs. 75,000 per academic year, which includes lodging, boarding (mess), and high-speed Wi-Fi.", "Hostel"),
-        ("What courses are available?", "We offer B.Tech in CSE, ECE, ME, and M.Tech in CSE. Please navigate to the Courses tab on your dashboard for more details.", "Academics"),
+        ("What courses are available?", "We offer B.Tech in CSE, ECE, ME, Civil, EEE, AIDS, and M.Tech CSE & MBA. Please navigate to the Courses tab on your dashboard for details.", "Academics"),
         ("What documents are required for admission?", "Required documents include: 10th and 12th Marks Sheets, Transfer Certificate, Migration Certificate, Passport size photographs, and Aadhaar Card copy.", "Admission"),
-        ("When are the semester exams?", "Odd semester exams are typically conducted in November-December, and even semester exams in April-May. Detailed timetables are posted in the Exams section of the dashboard.", "Exams"),
+        ("When are the semester exams?", "Odd semester exams are conducted in November-December, and even semester exams in April-May. Detailed timetables are posted in the Exams section.", "Exams"),
         ("What are the library timings?", "The Central Library is open from 8:30 AM to 6:30 PM on all working days, and from 9:00 AM to 2:00 PM on Saturdays.", "Facilities"),
         ("What are the bus routes?", "The college operates 15 buses across the city covering major residential areas. Detailed route maps and timings are available at the admin office.", "Transport"),
         ("How do I apply for a bonafide certificate?", "You can apply for a bonafide certificate by submitting a written request form signed by your HOD to the administrative block counter 2. Processing takes 2 working days.", "Administrative")
@@ -337,7 +361,11 @@ def seed_db():
         ("Semester Exam Registration Open", "All students must register for the upcoming End Semester Examination by September 15th. Fine applies post deadline.", "exam"),
         ("On-Campus Recruitment Drive: TCS", "TCS will be visiting our campus on September 22nd. Registration link is active under the placements tab for eligible B.Tech CSE/ECE students.", "placement"),
         ("Ganesh Chaturthi Holiday Notice", "The college will remain closed on September 5th on account of Ganesh Chaturthi.", "holiday"),
-        ("Annual Tech Fest - 'Invento 2026'", "We are proud to announce our Annual National level Technical Festival 'Invento 2026' on October 12th-13th. Register now for project display and hackathons!", "event")
+        ("Annual Tech Fest - 'Invento 2026'", "We are proud to announce our Annual National level Technical Festival 'Invento 2026' on October 12th-13th. Register now for project display and hackathons!", "event"),
+        ("National Hackathon 2026 Registration Open", "Registrations are open for the 24-hour National Student Hackathon 'HackVerse 2026' scheduled for October 25th. Cash prizes up to 1.5 Lakhs.", "event"),
+        ("Mid-Semester Academic Assessment Schedule", "Mid-Semester internal examinations for 2nd, 3rd, and 4th-year B.Tech students will commence from October 10th. Attendance is mandatory.", "exam"),
+        ("On-Campus Recruitment Drive: Amazon & Google", "Amazon & Google Software Engineering recruitment drives are scheduled for October 18th-20th. Eligible B.Tech CSE/AIDS students must submit updated resumes by October 10th.", "placement"),
+        ("Diwali Festival Holiday Notice", "The college will remain closed from October 31st to November 3rd on account of Diwali holidays. Hostel mess will function as per holiday schedule.", "holiday")
     ]
     cursor.executemany('''
         INSERT INTO announcements (title, content, category)
@@ -348,7 +376,11 @@ def seed_db():
     placements = [
         ("TCS", "Systems Engineer", "B.Tech CSE/ECE, CGPA > 6.5, No Active Backlogs", "3.6 - 7.0 LPA", "Sept 22, 2026", "Java/Python, Aptitude, DBMS, Communication Skills", "Internship stipend of 15k/month for 6 months prior to joining"),
         ("Microsoft", "Software Engineer Intern", "B.Tech CSE, CGPA > 8.0", "1.2 Lakhs / Month (Stipend)", "Oct 10, 2026", "Data Structures, Algorithms, Coding Excellence", "12-week summer internship with pre-placement offer possibility"),
-        ("Infosys", "Specialist Programmer", "B.Tech CSE/ECE/IT, CGPA > 6.0", "9.5 LPA", "Oct 28, 2026", "Advanced coding, Problem solving, OOPs concepts", "6 months training at Mysore campus")
+        ("Infosys", "Specialist Programmer", "B.Tech CSE/ECE/IT, CGPA > 6.0", "9.5 LPA", "Oct 28, 2026", "Advanced coding, Problem solving, OOPs concepts", "6 months training at Mysore campus"),
+        ("Amazon", "Software Development Engineer (SDE 1)", "B.Tech CSE/AIDS/ECE, CGPA > 7.5", "28.0 - 32.0 LPA", "Oct 18, 2026", "Data Structures, System Design, Java/Python", "6 months pre-joining internship stipend of Rs. 80,000/month"),
+        ("Google", "Associate Software Engineer", "B.Tech CSE/AIDS, CGPA > 8.0", "30.0 - 35.0 LPA", "Oct 20, 2026", "Competitive Programming, Graph Theory, Algorithms", "Summer Internship stipend of Rs. 1,00,000/month"),
+        ("Wipro", "Project Engineer (Turbo)", "All Engineering Branches, CGPA > 6.0", "6.5 - 8.0 LPA", "Nov 05, 2026", "Java/C++, DBMS, Basic Web Development, Aptitude", "3 months training with Rs. 20,000/month stipend"),
+        ("Larsen & Toubro (L&T)", "Graduate Engineer Trainee (GET)", "B.Tech Civil / Mechanical / EEE, CGPA > 6.5", "6.0 - 7.5 LPA", "Nov 12, 2026", "Core Engineering Fundamentals, CAD Software, Site Management", "1-year probation with performance appraisal")
     ]
     cursor.executemany('''
         INSERT INTO placements (company_name, job_role, eligibility, salary, recruitment_date, skills_required, internship_info)
